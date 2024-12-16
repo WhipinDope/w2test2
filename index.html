@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yasaklı Kelime Yönetimi</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .word-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .word-list {
+            display: grid;
+            gap: 10px;
+        }
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            background: #f44336;
+        }
+        .delete-btn:hover {
+            background: #da190b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Yasaklı Kelime Yönetimi</h1>
+        <div class="word-form">
+            <input type="text" id="wordInput" placeholder="Yeni yasaklı kelime ekle...">
+            <button onclick="addWord()">Ekle</button>
+        </div>
+        <div id="wordList" class="word-list">
+            <!-- Kelimeler buraya dinamik olarak eklenecek -->
+        </div>
+    </div>
+
+    <script>
+        // Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyANgkufIfY82Q145q8hpUJu1Eof45kBKDA",
+            authDomain: "bad-words-a5cfe.firebaseapp.com",
+            projectId: "bad-words-a5cfe",
+            storageBucket: "bad-words-a5cfe.firebasestorage.app",
+            messagingSenderId: "40803459137",
+            appId: "1:40803459137:web:c0d38da331b8d072d4e6c0",
+            measurementId: "G-FCYLZQDDQ8",
+            databaseURL: "https://bad-words-a5cfe-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+
+        // Firebase başlatma
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const wordsRef = database.ref('forbiddenWords');
+
+        // Kelime ekleme fonksiyonu
+        function addWord() {
+            const input = document.getElementById('wordInput');
+            const word = input.value.trim();
+            
+            if (word) {
+                wordsRef.push(word);
+                input.value = '';
+            }
+        }
+
+        // Kelime silme fonksiyonu
+        function deleteWord(key) {
+            wordsRef.child(key).remove();
+        }
+
+        // Listeyi güncelleme
+        wordsRef.on('value', (snapshot) => {
+            const wordList = document.getElementById('wordList');
+            wordList.innerHTML = '';
+            
+            snapshot.forEach((childSnapshot) => {
+                const key = childSnapshot.key;
+                const word = childSnapshot.val();
+                
+                const div = document.createElement('div');
+                div.className = 'word-item';
+                div.innerHTML = `
+                    <span>${word}</span>
+                    <button class="delete-btn" onclick="deleteWord('${key}')">Sil</button>
+                `;
+                
+                wordList.appendChild(div);
+            });
+        });
+
+        // Enter tuşu ile kelime ekleme
+        document.getElementById('wordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addWord();
+            }
+        });
+    </script>
+</body>
+</html>
